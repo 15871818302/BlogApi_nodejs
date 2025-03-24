@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import UserRepository from "@/repository/UserRepository";
-import { comparePassword, hashPassword, IUser } from "@/models/User";
+import { comparePassword, IUser } from "@/models/User";
 import config from "@/config";
 import { InternalServerError, UnauthorizedError } from "@/errors";
 
@@ -69,11 +69,9 @@ class AuthService {
     }
 
     // 创建新用户
-    const hashedPassword = await hashPassword(userData.password);
-
     const newUser = await UserRepository.create({
       ...userData,
-      password: hashedPassword,
+      password: userData.password,
       role: "user",
       isActive: true,
       createdAt: new Date(),
