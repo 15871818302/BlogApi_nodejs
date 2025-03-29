@@ -17,6 +17,11 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  ssl: true,
+  tls: true,
+  retryWrites: true,
+  connectTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
 });
 
 // 设置数据库连接状态
