@@ -2,8 +2,10 @@ import express, { Application } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
+import swaggerUi from "swagger-ui-express";
 import { getDb } from "./config/database";
 import router from "./router";
+import { specs } from "./config/swagger";
 // 类型扩展
 declare global {
   namespace Express {
@@ -17,10 +19,17 @@ const app: Application = express();
 
 // 中间件
 app.use(cors());
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // 允许Swagger UI加载资源
+  })
+);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// API文档路由
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+// API路由
 app.use("/api", router);
 // 挂载数据库实例
 app.use((req, res, next) => {

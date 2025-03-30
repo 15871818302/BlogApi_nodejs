@@ -4,6 +4,56 @@ import { InternalServerError, UnauthorizedError } from "@/errors";
 
 export class AuthController {
   /**
+   * @swagger
+   * /auth/login:
+   *   post:
+   *     summary: 用户登录
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - email
+   *               - password
+   *             properties:
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 description: 用户邮箱
+   *               password:
+   *                 type: string
+   *                 format: password
+   *                 description: 用户密码
+   *     responses:
+   *       200:
+   *         description: 登录成功
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 message:
+   *                   type: string
+   *                   example: 登录成功
+   *                 token:
+   *                   type: string
+   *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   *                 user:
+   *                   $ref: '#/components/schemas/User'
+   *       400:
+   *         description: 请求参数错误
+   *       401:
+   *         description: 登录失败，邮箱或密码错误
+   *       500:
+   *         description: 服务器错误
+   */
+  /**
    * 登录
    * @route POST /api/auth/login
    * @param {string} email.required - 用户邮箱
@@ -33,6 +83,61 @@ export class AuthController {
     }
   }
 
+  /**
+   * @swagger
+   * /auth/register:
+   *   post:
+   *     summary: 用户注册
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - username
+   *               - email
+   *               - password
+   *             properties:
+   *               username:
+   *                 type: string
+   *                 description: 用户名
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 description: 用户邮箱
+   *               password:
+   *                 type: string
+   *                 format: password
+   *                 description: 用户密码
+   *               displayName:
+   *                 type: string
+   *                 description: 显示名称
+   *     responses:
+   *       201:
+   *         description: 注册成功
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 message:
+   *                   type: string
+   *                   example: 注册成功
+   *                 token:
+   *                   type: string
+   *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   *                 user:
+   *                   $ref: '#/components/schemas/User'
+   *       400:
+   *         description: 请求参数错误
+   *       500:
+   *         description: 服务器错误
+   */
   /**
    * 注册
    * @route POST /api/auth/register

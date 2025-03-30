@@ -5,11 +5,78 @@ import { IPost } from "@/models/Post";
 
 export class PostController {
   /**
-   * 创建文章
-   * @route POST /api/posts
-   * @param {string} title.required - 文章标题
-   * @param {string} content.required - 文章内容
-   * @param {string} author.required - 作者ID
+   * @swagger
+   * /posts:
+   *   post:
+   *     summary: 创建新文章
+   *     tags: [Posts]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - title
+   *               - content
+   *             properties:
+   *               title:
+   *                 type: string
+   *                 description: 文章标题
+   *               content:
+   *                 type: string
+   *                 description: 文章内容
+   *               slug:
+   *                 type: string
+   *                 description: URL友好的标识符
+   *               excerpt:
+   *                 type: string
+   *                 description: 文章摘要
+   *               status:
+   *                 type: string
+   *                 enum: [draft, published, archived]
+   *                 description: 文章状态
+   *               categories:
+   *                 type: array
+   *                 items:
+   *                   type: string
+   *                 description: 分类ID数组
+   *               tags:
+   *                 type: array
+   *                 items:
+   *                   type: string
+   *                 description: 标签数组
+   *     responses:
+   *       201:
+   *         description: 文章创建成功
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 message:
+   *                   type: string
+   *                   example: 文章创建成功
+   *                 code:
+   *                   type: integer
+   *                   example: 0
+   *                 data:
+   *                   $ref: '#/components/schemas/Post'
+   *       400:
+   *         description: 请求参数错误
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *       401:
+   *         description: 未授权
+   *       500:
+   *         description: 服务器错误
    */
   static async createPost(req: Request, res: Response, next: NextFunction) {
     try {
