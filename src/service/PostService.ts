@@ -45,6 +45,53 @@ class PostService {
 
     return post;
   }
+
+  // 分页查询文章
+  async getPostsByPage(page: number, limit: number) {
+    const posts = await PostRepository.findPaginated(page, limit);
+    return posts;
+  }
+
+  // 修改文章
+  async updatePost(postData: IPost, id: string) {
+    // 检查文章是否存在
+    const post = await PostRepository.findById(id);
+    if (!post) {
+      throw new Error("文章不存在");
+    }
+
+    // 验证分类是否存在
+    if (postData.categories && postData.categories.length > 0) {
+      for (const categoryId of postData.categories) {
+        const category = await CategoryReponsitory.findById(
+          categoryId.toString()
+        );
+        if (!category) {
+          throw new Error("暂无该分类");
+        }
+      }
+    }
+
+    // 修改
+    const updatedPost = await PostRepository.update(id, {
+      ...postData,
+    });
+
+    return updatedPost;
+  }
+
+  // 删除文章
+  async deletePost(id: string) {
+    // 检查文章是否存在
+    const post = await PostRepository.findById(id);
+    if (!post) {
+      throw new Error("文章不存在");
+    }
+
+    // 删除
+    const result = await PostRepository.delete(id);
+    return result;
+  }
 }
 
 export default new PostService();
