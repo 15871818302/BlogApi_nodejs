@@ -109,4 +109,61 @@ export class PostController {
       next(error);
     }
   }
+
+  static async getPostsByPage(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+      const posts = await PostService.getPostsByPage(
+        Number(page),
+        Number(limit)
+      );
+      res.status(200).json({
+        success: true,
+        message: "获取文章列表成功",
+        code: 0,
+        data: posts,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // 修改文章
+  static async updatePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const postData: IPost = req.body;
+      const postId = req.params.id;
+
+      // 调用服务层方法
+      const post = await PostService.updatePost(postData, postId);
+
+      // 返回结果
+      res.status(200).json({
+        success: true,
+        message: "文章更新成功",
+        code: 0,
+        data: post,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  // 删除文章
+  static async deletePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const postId = req.params.id;
+
+      // 调用服务层方法
+      await PostService.deletePost(postId);
+
+      // 返回结果
+      res.status(200).json({
+        success: true,
+        message: "文章删除成功",
+        code: 0,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
