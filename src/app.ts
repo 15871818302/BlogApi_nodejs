@@ -1,4 +1,5 @@
 import express, { Application } from "express";
+import compression from "compression";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
@@ -16,6 +17,9 @@ declare global {
 }
 
 const app: Application = express();
+
+// 启动压缩
+app.use(compression());
 
 // 中间件
 app.use(cors());

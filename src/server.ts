@@ -1,7 +1,12 @@
+import cluster from "cluster";
+import os from "os";
 import app from "./app";
 import { connectToDatabase, closeDatabaseConnection } from "./config/database";
 
 const PORT = process.env.PORT || 3000;
+
+// 根据 render 资源限制，设置最大进程数
+const WORKERS = process.env.NODE_ENV === "production" ? 2 : os.cpus().length;
 
 // 启动服务器
 async function startServer() {
@@ -35,6 +40,49 @@ async function startServer() {
   }
 }
 
-startServer();
+// 主进程和工作进程区分
+if (cluster.isPrimary) {
+  console.log(`主进程 ${process.pid} 正在运行`);
+  console.log(`工作进程数: ${WORKERS}`);
+
+  // 创建工作进程
+  for (let i = 0; i < WORKERS; i++) {
+    cluster.fork();
+  }
+
+  // 监听工作进程退出事件
+  cluster.on("exit", (worker, code, signal) => {
+    console.log(
+      `工作进程 ${worker.process.pid} 已退出, 退出码: ${code}, 信号: ${signal}`
+    );
+    // 如果工作进程异常退出，重新启动一个新的工作进程
+    if (code !== 0 && !worker.exitedAfterDisconnect) {
+      console.log("重新启动工作进程");
+      cluster.fork();
+    }
+  });
+
+  // 处理主进程终止
+  const gracefulMasterShutdown = () => {
+    console.log("主进程正在关闭");
+    for (const id in cluster.workers) {
+      cluster.workers[id]?.kill("SIGTERM");
+    }
+
+    // 给进程一些时间来关闭
+    setTimeout(() => {
+      console.log("主进程已关闭");
+      process.exit(0);
+    }, 5000);
+  };
+
+  // 监听主进程终止信号
+  process.on("SIGTERM", gracefulMasterShutdown);
+  process.on("SIGINT", gracefulMasterShutdown);
+} else {
+  console.log(`工作进程 ${process.pid} 正在启动`);
+  // 工作进程直接启动服务器
+  startServer();
+}
 
 export default app;

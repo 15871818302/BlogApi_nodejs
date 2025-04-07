@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "@/config/database";
 import { IPost, COLLECTION_NAME } from "@/models/Post";
+import cache from "@/utils/cache";
 
 // 帖子仓库类
 class PostRepository {
@@ -12,11 +13,33 @@ class PostRepository {
 
   // 根据某个元素查找
   async findById(id: string): Promise<IPost | null> {
-    return await this.collection.findOne<IPost>({ _id: new ObjectId(id) });
+    const cacheKey = `post:${id}`;
+    const cachedPost = cache.get<IPost>(cacheKey);
+    if (cachedPost) {
+      return cachedPost;
+    }
+    const post = await this.collection.findOne<IPost>({
+      _id: new ObjectId(id),
+    });
+    if (post) {
+      cache.set(cacheKey, post);
+    }
+    return post;
   }
 
   async findBySlug(slug: string): Promise<IPost | null> {
-    return await this.collection.findOne<IPost>({ slug });
+    const cacheKey = `post:slug:${slug}`;
+    const cachedPost = cache.get<IPost>(cacheKey);
+    if (cachedPost) {
+      return cachedPost;
+    }
+    const post = await this.collection.findOne<IPost>({ slug });
+    if (post) {
+      cache.set(cacheKey, post);
+      // 用id缓存一份
+      cache.set(`post:${post._id}`, post);
+    }
+    return post;
   }
 
   // 新增
@@ -25,10 +48,21 @@ class PostRepository {
       ...postData,
     });
 
-    return {
+    const newPost = {
       _id: result.insertedId,
       ...postData,
     };
+
+    // 添加到缓存
+    cache.set(`post:${newPost._id}`, newPost);
+    if (newPost.slug) {
+      cache.set(`post:slug:${newPost.slug}`, newPost);
+    }
+
+    // 清除列表缓存
+    cache.del("posts:list:*");
+
+    return newPost;
   }
 
   // 修改
