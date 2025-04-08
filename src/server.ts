@@ -5,6 +5,9 @@ import { connectToDatabase, closeDatabaseConnection } from "./config/database";
 
 const PORT = process.env.PORT || 3000;
 
+// 根据环境变量来判断是否启动集群模式
+const ENABLE_CLUSTER = process.env.ENABLE_CLUSTER === "true";
+
 // 根据 render 资源限制，设置最大进程数
 const WORKERS = process.env.NODE_ENV === "production" ? 2 : os.cpus().length;
 
@@ -41,7 +44,7 @@ async function startServer() {
 }
 
 // 主进程和工作进程区分
-if (cluster.isPrimary) {
+if (cluster.isPrimary && ENABLE_CLUSTER) {
   console.log(`主进程 ${process.pid} 正在运行`);
   console.log(`工作进程数: ${WORKERS}`);
 
@@ -80,7 +83,11 @@ if (cluster.isPrimary) {
   process.on("SIGTERM", gracefulMasterShutdown);
   process.on("SIGINT", gracefulMasterShutdown);
 } else {
-  console.log(`工作进程 ${process.pid} 正在启动`);
+  if (ENABLE_CLUSTER && !cluster.isPrimary) {
+    console.log(`工作进程 ${process.pid} 已启动`);
+  } else {
+    console.log(`单进程模式，进程 ${process.pid} 正在运行`);
+  }
   // 工作进程直接启动服务器
   startServer();
 }
